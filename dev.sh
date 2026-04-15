@@ -4,12 +4,18 @@ set -euo pipefail
 echo "[INFO] Changing directory to script location: $(dirname "$0")"
 cd "$(dirname "$0")"
 
-# ── Guard: exit early if server is already running ────────────────────────────
+# ── Kill any existing server and clear auth token ─────────────────────────────
 PORT=${COPILOT_API_PORT:-4141}
-if lsof -iTCP:"$PORT" -sTCP:LISTEN -t &>/dev/null; then
-    echo "[INFO] copilot-api is already listening on port $PORT — nothing to do."
-    exit 0
+EXISTING_PID=$(lsof -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true)
+if [[ -n "$EXISTING_PID" ]]; then
+    echo "[INFO] Killing existing process on port $PORT (PID $EXISTING_PID)..."
+    kill "$EXISTING_PID"
+    sleep 1
 fi
+
+GITHUB_TOKEN_PATH="$HOME/.local/share/copilot-api/github_token"
+echo "[INFO] Clearing cached GitHub token to force re-auth..."
+truncate -s 0 "$GITHUB_TOKEN_PATH" 2>/dev/null || true
 
 # ── Sync upstream/master into current branch ─────────────────────────────────
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
