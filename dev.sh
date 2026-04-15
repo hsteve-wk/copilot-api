@@ -13,10 +13,6 @@ if [[ -n "$EXISTING_PID" ]]; then
     sleep 1
 fi
 
-GITHUB_TOKEN_PATH="$HOME/.local/share/copilot-api/github_token"
-echo "[INFO] Clearing cached GitHub token to force re-auth..."
-truncate -s 0 "$GITHUB_TOKEN_PATH" 2>/dev/null || true
-
 # ── Sync upstream/master into current branch ─────────────────────────────────
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 echo "[INFO] Current branch: $CURRENT_BRANCH"
